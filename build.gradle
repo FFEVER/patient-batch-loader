@@ -4,7 +4,7 @@ buildscript {
     repositories {
         mavenLocal()
         jcenter()
-        maven { url "http://repo.spring.io/plugins-release" }
+        maven { url "https://repo.spring.io/plugins-release" }
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
@@ -104,7 +104,7 @@ configurations {
 repositories {
     mavenLocal()
     jcenter()
-    maven { url "http://repo.spring.io/plugins-release" }
+    maven { url "https://repo.spring.io/plugins-release" }
     maven { url "https://plugins.gradle.org/m2/" }
 }
 
@@ -136,6 +136,13 @@ dependencies {
         exclude module: 'spring-boot-starter-tomcat'
     }
     compile "org.springframework.boot:spring-boot-starter-undertow"
+
+    // Starter to include the Spring Batch
+    // dependencies via Spring Boot
+    compile "org.springframework.boot:spring-boot-starter-batch"
+
+    // Spring Batch testing support
+    testCompile "org.springframework.batch:spring-batch-test"
 
     testCompile ("org.springframework.boot:spring-boot-starter-test") {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
