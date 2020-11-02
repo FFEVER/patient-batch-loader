@@ -50,3 +50,7 @@ management:
 # ===================================================================
 # Application specific properties
 # ===================================================================
+application:
+    batch:
+        # Custom input path to the patient data
+        inputPath: C:/Batch Study/patient-batch-loader/data
