@@ -1,5 +1,6 @@
 package com.pluralsight.springbatch.patientbatchloader.config;
 
+import com.pluralsight.springbatch.patientbatchloader.domain.PatientEntity;
 import com.pluralsight.springbatch.patientbatchloader.domain.PatientRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.Job;
@@ -34,7 +35,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Function;
 
 @Configuration
 public class BatchJobConfiguration {
@@ -86,7 +90,7 @@ public class BatchJobConfiguration {
     public Step step(ItemReader<PatientRecord> itemReader) throws Exception {
         return this.stepBuilderFactory
             .get(Constants.STEP_NAME)
-            .<PatientRecord, PatientRecord>chunk(2)
+            .<PatientRecord, PatientEntity>chunk(2)
             .reader(itemReader)
             .processor(processor())
             .writer(writer())
@@ -124,18 +128,33 @@ public class BatchJobConfiguration {
 
     @Bean
     @StepScope
-    public PassThroughItemProcessor<PatientRecord> processor() {
-        return new PassThroughItemProcessor<>();
+    public Function<PatientRecord, PatientEntity> processor() {
+        return patientRecord -> {
+            return new PatientEntity(
+                patientRecord.getSourceId(),
+                patientRecord.getFirstName(),
+                patientRecord.getMiddleInitial(),
+                patientRecord.getLastName(),
+                patientRecord.getEmailAddress(),
+                patientRecord.getPhoneNumber(),
+                patientRecord.getStreet(),
+                patientRecord.getCity(),
+                patientRecord.getState(),
+                patientRecord.getZip(),
+                LocalDate.parse(patientRecord.getBirthDate(), DateTimeFormatter.ofPattern("M/dd/yyyy")),
+                patientRecord.getSsn()
+            );
+        };
     }
 
     @Bean
     @StepScope
-    public ItemWriter<PatientRecord> writer() {
-        return new ItemWriter<PatientRecord>() {
+    public ItemWriter<PatientEntity> writer() {
+        return new ItemWriter<PatientEntity>() {
             @Override
-            public void write(List<? extends PatientRecord> items) throws Exception {
-                for (PatientRecord patientRecord : items) {
-                    System.err.println("Writing item: " + patientRecord.toString());
+            public void write(List<? extends PatientEntity> items) throws Exception {
+                for (PatientEntity patientEntity : items) {
+                    System.err.println("Writing item: " + patientEntity.toString());
                 }
             }
         };
