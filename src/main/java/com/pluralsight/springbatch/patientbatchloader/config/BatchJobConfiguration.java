@@ -18,6 +18,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
@@ -26,11 +27,13 @@ import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.PathResource;
 
+import javax.persistence.EntityManagerFactory;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,6 +51,9 @@ public class BatchJobConfiguration {
     private StepBuilderFactory stepBuilderFactory;
     @Autowired
     private ApplicationProperties applicationProperties;
+    @Autowired
+    @Qualifier(value = "batchEntityManagerFactory")
+    private EntityManagerFactory batchEntityManagerFactory;
 
     @Bean
     JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
@@ -149,14 +155,9 @@ public class BatchJobConfiguration {
 
     @Bean
     @StepScope
-    public ItemWriter<PatientEntity> writer() {
-        return new ItemWriter<PatientEntity>() {
-            @Override
-            public void write(List<? extends PatientEntity> items) throws Exception {
-                for (PatientEntity patientEntity : items) {
-                    System.err.println("Writing item: " + patientEntity.toString());
-                }
-            }
-        };
+    public JpaItemWriter<PatientEntity> writer() {
+        JpaItemWriter<PatientEntity> writer = new JpaItemWriter<>();
+        writer.setEntityManagerFactory(batchEntityManagerFactory);
+        return writer;
     }
 }
